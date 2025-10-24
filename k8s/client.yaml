@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-auth-client
+  namespace: poc-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-auth-client
+  template:
+    metadata:
+      labels:
+        app: k8s-auth-client
+    spec:
+      serviceAccountName: client-sa
+      containers:
+        - name: client
+          image: 519677643490.dkr.ecr.us-east-1.amazonaws.com/security_poc:marchi
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SERVER_URL
+              value: http://k8s-auth-server.poc-auth.svc.cluster.local/secure
+            - name: HEADER_NAME
+              value: X-Client-ID
+          command: ["dotnet", "K8sAuthClient.dll"]

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-auth-server
+  namespace: poc-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-auth-server
+  template:
+    metadata:
+      labels:
+        app: k8s-auth-server
+    spec:
+      serviceAccountName: server-sa
+      containers:
+        - name: server
+          image: 519677643490.dkr.ecr.us-east-1.amazonaws.com/security_poc:amarchi1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: HEADER_NAME
+              value: X-Client-ID
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-auth-server
+  namespace: poc-auth
+spec:
+  selector:
+    app: k8s-auth-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
